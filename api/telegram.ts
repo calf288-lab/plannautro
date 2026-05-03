@@ -3,7 +3,6 @@ import { validateEnv, env } from "../lib/env";
 import { handleMessage } from "../lib/handlers";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Всегда отвечаем 200 чтобы Telegram не ретраил
   if (req.method !== "POST") {
     return res.status(200).json({ ok: true, message: "Webhook ready" });
   }
@@ -24,8 +23,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const update = req.body as { message?: unknown };
     if (update.message) {
-      // Не ждём — отвечаем Telegram сразу, обрабатываем асинхронно
-      void handleMessage(update.message as Parameters<typeof handleMessage>[0]);
+      // Ждём обработку — иначе Vercel убьёт функцию до завершения
+      await handleMessage(update.message as Parameters<typeof handleMessage>[0]);
     }
   } catch (err) {
     console.error("Webhook error:", JSON.stringify(err));
